@@ -11,3 +11,4 @@ extension_attributes/*
 !extension_attributes/Last User/
 scripts/*
 !scripts/Install Software Updates/
+jamfapi.cfg
