@@ -144,7 +144,7 @@ def download_scripts(mode, overwrite=None,):
                 print('No interpreter directive found for: ', tree.find('name').text)
                 ext = '.sh' # Call it sh for now so the uploader detects it
 
-            with open(os.path.join(resource_path, '%s%s' % (mode,ext)), 'w') as f:
+            with open(os.path.join(resource_path, '%s%s' % (tree.find('name').text, ext)), 'w') as f:
                 f.write(xmlstr)
 
             # Need to remove ID and script contents and write out xml
@@ -157,7 +157,7 @@ def download_scripts(mode, overwrite=None,):
                 pass
 
         xmlstr = minidom.parseString(ET.tostring(tree, encoding='unicode', method='xml')).toprettyxml(indent="   ")
-        with open(os.path.join(resource_path, '%s.xml' % mode), 'w') as f:
+        with open(os.path.join(resource_path, '%s.xml' % tree.find('name').text), 'w') as f:
             f.write(xmlstr)
     invalidate_uapi_token(token)
 
@@ -227,3 +227,4 @@ if __name__ == '__main__':
     download_scripts(overwrite=args.overwrite, mode='ea')
     # Run script download for scripts
     download_scripts(overwrite=args.overwrite, mode='script')
+
