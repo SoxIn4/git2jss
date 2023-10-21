@@ -12,3 +12,5 @@ extension_attributes/*
 scripts/*
 !scripts/Install Software Updates/
 jamfapi.cfg
+matw_jamf_scripts/extension_attributes/*
+matw_jamf_scripts/scripts/*
