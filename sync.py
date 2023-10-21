@@ -77,11 +77,12 @@ def check_for_changes():
     for i in git_changes:
         if 'extension_attributes/' in i and i.split(
                 '/')[1] not in changed_ext_attrs:
-            changed_ext_attrs.append(i.split('/')[1])
+            changed_ext_attrs.append(".".join(i.split('/')[-1].split('.')[:-1]))
 
     for i in git_changes:
         if 'scripts/' in i and i.split('/')[1] not in changed_scripts:
-            changed_scripts.append(i.split('/')[1])
+            # print(f'changed file: {i}')
+            changed_scripts.append(".".join(i.split('/')[-1].split('.')[:-1]))
 
 
 def write_jenkins_file():
@@ -148,7 +149,7 @@ async def upload_extension_attribute(session, url, user, passwd, ext_attr,
     # Get the script files within the folder, we'll only use
     # script_file[0] in case there are multiple files
     script_file = [
-        f.name for f in os.scandir(join('extension_attributes', ext_attr))
+        f.name for f in os.scandir(join(sync_path, 'extension_attributes', ext_attr))
         if f.is_file() and f.name.split('.')[-1] in SUPPORTED_EA_EXTENSIONS
     ]
     if script_file == []:
@@ -203,7 +204,7 @@ async def get_ea_template(session, url, user, passwd, ext_attr):
     # auth = aiohttp.BasicAuth(user, passwd)
     # sync_path = dirname(realpath(__file__))
     xml_file = [
-        f.name for f in os.scandir(join('extension_attributes', ext_attr))
+        f.name for f in os.scandir(join(sync_path, 'extension_attributes', ext_attr))
         if f.is_file() and f.name.split('.')[-1] in 'xml'
     ]
     try:
@@ -258,10 +259,14 @@ async def upload_scripts(session, url, user, passwd, semaphore):
 
     if not changed_scripts and not args.update_all:
         print('No Changes in Scripts')
+    # print(f'Sync path: {sync_path}')
     scripts = [
         f.name for f in os.scandir(join(sync_path, 'scripts')) if f.is_dir()
         and f.name in changed_scripts
     ]
+    # for f in os.scandir(join(sync_path, 'scripts')):
+    #     print(f'Is dir: {f.is_dir()} - script dir file: {f.name}')
+    # print(f'scripts to upload: {scripts}')
     if args.update_all:
         print('Copying all scripts...')
         scripts = [
@@ -285,7 +290,7 @@ async def upload_script(session, url, user, passwd, script, semaphore):
                 'Content-Type': 'application/xml', 
                 'Authorization': 'Bearer ' + token}
     script_file = [
-        f.name for f in os.scandir(join('scripts', script))
+        f.name for f in os.scandir(join(sync_path, 'scripts', script))
         if f.is_file() and f.name.split('.')[-1] in SUPPORTED_SCRIPT_EXTENSIONS
     ]
     if script_file == []:
@@ -327,7 +332,7 @@ async def get_script_template(session, url, user, passwd, script):
     # auth = aiohttp.BasicAuth(user, passwd)
     # sync_path = dirname(realpath(__file__))
     xml_file = [
-        f.name for f in os.scandir(join('scripts', script))
+        f.name for f in os.scandir(join(sync_path, 'scripts', script))
         if f.is_file() and f.name.split('.')[-1] in 'xml'
     ]
     try:
