@@ -130,6 +130,10 @@ def download_scripts(mode, overwrite=None,):
                 ext = '.sh'
             elif xmlstr.startswith('#!/usr/bin/python'):
                 ext = '.py'
+            elif xmlstr.startswith('#!/usr/local/munki/munki-python'):
+                ext = '.py'
+            elif xmlstr.startswith('#!/usr/local/bin/managed_python3'):
+                ext = '.py'
             elif xmlstr.startswith('#!/usr/bin/env python'):
                 ext = '.py'
             elif xmlstr.startswith('#!/usr/bin/perl'):
