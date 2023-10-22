@@ -28,10 +28,10 @@ Optional flags for `sync.py`:
 -   `--jenkins` to write a Jenkins file:`jenkins.properties` with `$scripts` and `$eas` and compare `$GIT_PREVIOUS_COMMIT` with `$GIT_COMMIT`
 
 ### Prerequisites
-git2jss requires [Python 3.6](https://www.python.org/downloads/) and the python modules listed in `requirements.txt`
+git2jss requires [Python 3.11](https://www.python.org/downloads/) and the python modules listed in `requirements.txt`
 
 ## Deployment
-The project can be ran ad-hoc with the example listed above, but ideally you setup webhooks and integrate into a CI/CD pipeline so each time a push is made to the repo your scripts are re-uploaded to the JSS.
+The project can be run ad-hoc with the example listed above, but ideally you setup webhooks and integrate into a CI/CD pipeline so each time a push is made to the repo your scripts are re-uploaded to the JSS.
 
 ## Contributing
 PR's are always welcome!
