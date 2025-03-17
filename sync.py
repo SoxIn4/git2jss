@@ -9,7 +9,6 @@ import getpass
 import argparse
 import logging
 import asyncio
-import async_timeout
 import aiohttp
 import uvloop
 import configparser
@@ -162,32 +161,31 @@ async def upload_extension_attribute(session, url, user, passwd, ext_attr,
                 join(sync_path, 'extension_attributes', ext_attr, script_file[0]),
                 'r') as f:
             data = f.read()
-    async with semaphore:
-        with async_timeout.timeout(args.timeout):
-            template = await get_ea_template(session, url, user, passwd,
-                                             ext_attr)
-            async with session.get(
-                    url + '/JSSResource/computerextensionattributes/name/' +
-                    template.find('name').text,
-                    headers=headers) as resp:
-                if has_script and data:
-                    template.find('input_type/script').text = data
-                if args.verbose:
-                    print(ET.tostring(template))
-                    print('response status initial get: ', resp.status)
-                if resp.status == 200:
-                    put_url = url + '/JSSResource/computerextensionattributes/name/' + \
-                        template.find('name').text
-                    resp = await session.put(
-                        put_url,
-                        data=ET.tostring(template),
-                        headers=headers)
-                else:
-                    post_url = url + '/JSSResource/computerextensionattributes/id/0'
-                    resp = await session.post(
-                        post_url,
-                        data=ET.tostring(template),
-                        headers=headers)
+    async with semaphore, asyncio.timeout(args.timeout):
+        template = await get_ea_template(session, url, user, passwd,
+                                            ext_attr)
+        async with session.get(
+                url + '/JSSResource/computerextensionattributes/name/' +
+                template.find('name').text,
+                headers=headers) as resp:
+            if has_script and data:
+                template.find('input_type/script').text = data
+            if args.verbose:
+                print(ET.tostring(template))
+                print('response status initial get: ', resp.status)
+            if resp.status == 200:
+                put_url = url + '/JSSResource/computerextensionattributes/name/' + \
+                    template.find('name').text
+                resp = await session.put(
+                    put_url,
+                    data=ET.tostring(template),
+                    headers=headers)
+            else:
+                post_url = url + '/JSSResource/computerextensionattributes/id/0'
+                resp = await session.post(
+                    post_url,
+                    data=ET.tostring(template),
+                    headers=headers)
     if args.verbose:
         print('response status: ', resp.status)
         print('EA: ', ext_attr)
@@ -213,7 +211,7 @@ async def get_ea_template(session, url, user, passwd, ext_attr):
                 'r') as file:
             template = ET.fromstring(file.read())
     except IndexError:
-        with async_timeout.timeout(args.timeout):
+        async with asyncio.timeout(args.timeout):
             headers = {
                 'Accept': 'application/xml',
                 'Content-Type': 'application/xml', 
@@ -298,28 +296,27 @@ async def upload_script(session, url, user, passwd, script, semaphore):
         return  # Need to skip if no script.
     with open(join(sync_path, 'scripts', script, script_file[0]), 'r') as f:
         data = f.read()
-    async with semaphore:
-        with async_timeout.timeout(args.timeout):
-            template = await get_script_template(session, url, user, passwd,
-                                                 script)
-            async with session.get(
-                    url + '/JSSResource/scripts/name/' +
-                    template.find('name').text,
-                    headers=headers) as resp:
-                template.find('script_contents').text = data
-                if resp.status == 200:
-                    put_url = url + '/JSSResource/scripts/name/' + \
-                        template.find('name').text
-                    resp = await session.put(
-                        put_url,
-                        data=ET.tostring(template),
-                        headers=headers)
-                else:
-                    post_url = url + '/JSSResource/scripts/id/0'
-                    resp = await session.post(
-                        post_url,
-                        data=ET.tostring(template),
-                        headers=headers)
+    async with semaphore, asyncio.timeout(args.timeout):
+        template = await get_script_template(session, url, user, passwd,
+                                                script)
+        async with session.get(
+                url + '/JSSResource/scripts/name/' +
+                template.find('name').text,
+                headers=headers) as resp:
+            template.find('script_contents').text = data
+            if resp.status == 200:
+                put_url = url + '/JSSResource/scripts/name/' + \
+                    template.find('name').text
+                resp = await session.put(
+                    put_url,
+                    data=ET.tostring(template),
+                    headers=headers)
+            else:
+                post_url = url + '/JSSResource/scripts/id/0'
+                resp = await session.post(
+                    post_url,
+                    data=ET.tostring(template),
+                    headers=headers)
     if resp.status in (201, 200):
         print('Uploaded script: %s' % template.find('name').text)
     else:
@@ -339,7 +336,7 @@ async def get_script_template(session, url, user, passwd, script):
         with open(join(sync_path, 'scripts', script, xml_file[0]), 'r') as file:
             template = ET.fromstring(file.read())
     except IndexError:
-        with async_timeout.timeout(args.timeout):
+        async with asyncio.timeout(args.timeout):
             headers = {
                 'Accept': 'application/xml',
                 'Content-Type': 'application/xml', 
@@ -383,18 +380,17 @@ async def get_existing_categories(session, url, user, passwd, semaphore):
                 'Content-Type': 'application/xml', 
                 'Authorization': 'Bearer ' + token
     }
-    async with semaphore:
-        with async_timeout.timeout(args.timeout):
-            async with session.get(
-                    url + '/JSSResource/categories',
-                    headers=headers) as resp:
-                if resp.status in (201, 200):
-                    return [
-                        c.find('name').text for c in [
-                            e for e in ET.fromstring(await resp.text()).
-                            findall('category')
-                        ]
+    async with semaphore, asyncio.timeout(args.timeout):
+        async with session.get(
+                url + '/JSSResource/categories',
+                headers=headers) as resp:
+            if resp.status in (201, 200):
+                return [
+                    c.find('name').text for c in [
+                        e for e in ET.fromstring(await resp.text()).
+                        findall('category')
                     ]
+                ]
     return []
 
 
